@@ -1,3 +1,49 @@
-git add .github/workflows/flutter-ci.yml
-git commit -m "Add Flutter CI workflow"
-git push origin main
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout source code
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0" # change to your Flutter version
+
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Analyze code
+      - name: Analyze code
+        run: flutter analyze
+
+      # Run tests
+      - name: Run tests
+        run: flutter test
+
+      # Build Android APK
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      # Build Android App Bundle (Play Store requires AAB)
+      - name: Build Android AAB
+        run: flutter build appbundle --release
+
+      # Upload APK & AAB as workflow artifacts
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-builds
+          path: build/app/outputs/flutter-apk/*.apk, build/app/outputs/bundle/release/*.aab
